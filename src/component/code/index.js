@@ -15,14 +15,17 @@ class Code extends React.Component {
             button_text: "获取验证码",
             button_disabled: false,
             button_loading: false,
+            module: ""
         }
     }
 
     //获取父组件传过来的props
     componentWillReceiveProps(value) {
         this.setState({
-            username: value.username
+            username: value.username,
+            module: value.module
         })
+
     }
 
     componentWillUnmount() {
@@ -44,10 +47,12 @@ class Code extends React.Component {
         })
         const requestData = {
             username: this.state.username,
-            module: "login"
+            module: this.state.module
         }
         GetCode(requestData).then(response => {
             //执行倒计时
+            message.success(response.data.message)
+            // console.log(response);
             this.countDown();
         }).catch(error => {
             this.setState({

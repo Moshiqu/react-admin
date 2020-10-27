@@ -3,25 +3,43 @@ import React, { Fragment } from "react";
 
 import "./index.scss";
 
-import { Form, Input, Button, Col, Row } from 'antd';
+import { Form, Input, Button, Col, Row, message } from 'antd';
 import { UserOutlined, UnlockOutlined, MailOutlined } from '@ant-design/icons';
 
 import { validate_password } from "../../utils/validate";
 
 import { Login } from "../../api/account"
 
-import Code from "../../component/code/index"
+import Code from "../../component/code/index";
+
+import CryptoJs from "crypto-js";
+
 
 class LoginForm extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            username: ""
+            username: "",
+            password: "",
+            code: "",
+            module: "login"
         };
     }
 
     onFinish = values => {
-        Login().then(response => {
+        const requestData = {
+            username: this.state.username,
+            password: CryptoJs.MD5(this.state.password).toString(),
+            code: this.state.code
+        }
+        console.log(requestData);
+        // return false;
+        Login(requestData).then(response => {
+            if (response.data.resCode !== 0) {
+                message.warning(response.data.message)
+            } else {
+                message.success(response.data.message)
+            }
             console.log(response);
         }).catch(error => {
             console.log(error);
@@ -33,10 +51,24 @@ class LoginForm extends React.Component {
         this.props.onToggle("register")
     }
 
-    inputChange = (e) => {
+    inputChangeUsername = (e) => {
         const value = e.target.value
         this.setState({
             username: value
+        })
+    }
+
+    inputChangePassword = (e) => {
+        const value = e.target.value
+        this.setState({
+            password: value
+        })
+    }
+
+    inputChangeCode = (e) => {
+        const value = e.target.value
+        this.setState({
+            code: value
         })
     }
 
@@ -59,22 +91,22 @@ class LoginForm extends React.Component {
                                 { type: "email", message: "邮箱格式不正确!" }
                             ]
                         } >
-                            <Input value={this.state.username} onChange={this.inputChange}
-                                prefix={<UserOutlined className="site-form-item-icon" />} placeholder="email" />
+                            <Input value={this.state.username} onChange={this.inputChangeUsername}
+                                prefix={<UserOutlined className="site-form-item-icon" />} placeholder="请输入邮箱" />
                         </Form.Item>
 
                         <Form.Item name="password" rules={
                             [
                                 { required: true, message: '密码不能为空!' },
-                                { min: 8, message: "密码不能小于8位!" },
+                                { min: 6, message: "密码不能小于6位!" },
                                 { max: 20, message: "密码不能大于20位!" },
                                 {
                                     pattern: validate_password,
-                                    message: "输入8到20位包含至少1个大写字母，1个小写字母和1个数字的密码"
+                                    message: "输入6到20位包含1个小写字母和1个数字的密码"
                                 }
                             ]
                         } >
-                            <Input prefix={<UnlockOutlined className="site-form-item-icon" />} placeholder="Password" />
+                            <Input onChange={this.inputChangePassword} prefix={<UnlockOutlined className="site-form-item-icon" />} placeholder="请输入密码" />
                         </Form.Item>
 
                         <Form.Item name="code" rules={
@@ -85,10 +117,10 @@ class LoginForm extends React.Component {
                         } >
                             <Row gutter={13}>
                                 <Col span={15}>
-                                    <Input prefix={<MailOutlined className="site-form-item-icon" />} placeholder="Code" />
+                                    <Input onChange={this.inputChangeCode} prefix={<MailOutlined className="site-form-item-icon" />} placeholder="请输入验证码" />
                                 </Col>
                                 <Col span={9}>
-                                    <Code username={this.state.username} />
+                                    <Code username={this.state.username} module={this.state.module} />
                                 </Col>
                             </Row>
 
